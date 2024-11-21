@@ -87,7 +87,16 @@ class LoginWindow(ctk.CTk):
 
         # Vérifier que les champs ne sont pas vides
         if not username or not password:
-            messagebox.showerror("Erreur", "Veuillez saisir un nom d'utilisateur et un mot de passe.")
+            CTkMessagebox(
+                self,
+                title="Erreur",
+                message="Veuillez saisir un nom d'utilisateur et un mot de passe.",
+                option_1="Ok",
+                button_color=fg_color_button,
+                button_hover_color=hover_color_button,
+                icon="warning",
+                sound=True
+            ).get()
             return
 
         # Vérifier si la création de compte est activée
@@ -101,12 +110,22 @@ class LoginWindow(ctk.CTk):
         cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
         user = cursor.fetchone()
         if user:
-            messagebox.showerror("Erreur", "Le nom d'utilisateur existe déjà.")
+            CTkMessagebox(
+                self,
+                title="Erreur",
+                message="Le nom d'utilisateur existe déjà.",
+                option_1="Ok",
+                button_color=fg_color_button,
+                button_hover_color=hover_color_button,
+                icon="warning",
+                sound=True
+            ).get()
         else:
             salt = os.urandom(16)
             # Hacher le mot de passe avant de l'enregistrer
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-            cursor.execute('INSERT INTO users (username, password, salt) VALUES (?, ?, ?)', (username, hashed_password, salt))
+            cursor.execute('INSERT INTO users (username, password, salt) VALUES (?, ?, ?)',
+                           (username, hashed_password, salt))
             conn.commit()
 
             # Récupérer le mot de passe haché pour l'utilisateur
@@ -114,8 +133,33 @@ class LoginWindow(ctk.CTk):
             result = cursor.fetchone()[0]
             print(result)
 
-            messagebox.showinfo("Succès", f"Utilisateur '{username}' enregistré avec succès.")
+            CTkMessagebox(
+                self,
+                title="Succès",
+                message=f"Utilisateur '{username}' enregistré avec succès.",
+                option_1="Ok",
+                button_color=fg_color_button,
+                button_hover_color=hover_color_button,
+                icon="info",
+                sound=True
+            ).get()
             self.open_main_app(password, result, salt)
+        # if user:
+        #     messagebox.showerror("Erreur", "Le nom d'utilisateur existe déjà.")
+        # else:
+        #     salt = os.urandom(16)
+        #     # Hacher le mot de passe avant de l'enregistrer
+        #     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        #     cursor.execute('INSERT INTO users (username, password, salt) VALUES (?, ?, ?)', (username, hashed_password, salt))
+        #     conn.commit()
+        #
+        #     # Récupérer le mot de passe haché pour l'utilisateur
+        #     cursor.execute('SELECT user_id FROM users WHERE username = ?', (username,))
+        #     result = cursor.fetchone()[0]
+        #     print(result)
+        #
+        #     messagebox.showinfo("Succès", f"Utilisateur '{username}' enregistré avec succès.")
+
 
 
     def connecter_compte(self, username, password):
@@ -123,15 +167,43 @@ class LoginWindow(ctk.CTk):
         cursor.execute('SELECT user_id, password, salt FROM users WHERE username = ?', (username,))
         result = cursor.fetchone()
 
+        # Dans la méthode connecter_compte
         if result:
             # Comparer le mot de passe saisi avec le mot de passe haché dans la base de données
             stored_hashed_password = result[1]
             if bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password):
                 self.open_main_app(password, result[0], result[2])  # Connexion réussie
             else:
-                messagebox.showerror("Erreur", "Nom d'utilisateur ou mot de passe incorrect.")
+                CTkMessagebox(
+                    self,
+                    title="Erreur",
+                    message="Nom d'utilisateur ou mot de passe incorrect.",
+                    option_1="Ok",
+                    button_color=fg_color_button,
+                    button_hover_color=hover_color_button,
+                    icon="warning",
+                    sound=True
+                ).get()
         else:
-            messagebox.showerror("Erreur", "Nom d'utilisateur ou mot de passe incorrect.")
+            CTkMessagebox(
+                self,
+                title="Erreur",
+                message="Nom d'utilisateur ou mot de passe incorrect.",
+                option_1="Ok",
+                button_color=fg_color_button,
+                button_hover_color=hover_color_button,
+                icon="warning",
+                sound=True
+            ).get()
+        # if result:
+        #     # Comparer le mot de passe saisi avec le mot de passe haché dans la base de données
+        #     stored_hashed_password = result[1]
+        #     if bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password):
+        #         self.open_main_app(password, result[0], result[2])  # Connexion réussie
+        #     else:
+        #         messagebox.showerror("Erreur", "Nom d'utilisateur ou mot de passe incorrect.")
+        # else:
+        #     messagebox.showerror("Erreur", "Nom d'utilisateur ou mot de passe incorrect.")
 
     def open_main_app(self, password, user_id, salt):
         # Assure la fermeture propre de la fenêtre principale
