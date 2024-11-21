@@ -1,0 +1,7 @@
+.venv
+.idea
+test.py
+test_entry.py
+test_pack.py
+nuitka-crash-report.xml
+main.py
